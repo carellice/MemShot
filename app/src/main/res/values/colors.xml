@@ -1,0 +1,7 @@
+<resources>
+    <color name="brand_bg">#FFF7F5FF</color>
+    <color name="brand_bg_dark">#FF0E0C17</color>
+    <color name="brand_primary">#FF6C4DFF</color>
+    <color name="ic_bg_start">#FF7B5CFF</color>
+    <color name="ic_bg_end">#FFFF5C8A</color>
+</resources>

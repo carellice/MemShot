@@ -1,0 +1,18 @@
+<resources>
+    <style name="Theme.MemShot" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/brand_bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <style name="Theme.MemShot.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brand_bg</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.MemShot</item>
+    </style>
+
+    <style name="Theme.MemShot.Transparent" parent="android:Theme.Translucent.NoTitleBar">
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowNoDisplay">false</item>
+    </style>
+</resources>
