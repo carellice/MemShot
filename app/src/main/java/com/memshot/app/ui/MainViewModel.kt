@@ -182,6 +182,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         refreshTrashRequest()
     }
 
+    // ---- Aggiornamenti ----
+    val updateStatus get() = memshot.updater.status
+    val currentVersion get() = memshot.updater.currentVersion
+    fun checkForUpdate() = viewModelScope.launch { memshot.updater.check() }
+    fun downloadUpdate(update: com.memshot.app.update.Updater.Status.Available) =
+        viewModelScope.launch { memshot.updater.download(update) }
+    fun installUpdate(ready: com.memshot.app.update.Updater.Status.Ready) = memshot.updater.install(ready)
+
     // ---- Backup ----
     private val _backupProgress = MutableStateFlow<Backup.Progress?>(null)
     /** Avanzamento di un backup/ripristino in corso (null = nessuno). */

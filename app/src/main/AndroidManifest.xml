@@ -7,6 +7,9 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Solo per controllare e scaricare gli aggiornamenti da GitHub -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- Facoltativo: permette di togliere gli screenshot dalla galleria senza chiedere conferma ogni volta -->
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"

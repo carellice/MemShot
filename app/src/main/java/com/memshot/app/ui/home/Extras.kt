@@ -1,6 +1,24 @@
 package com.memshot.app.ui.home
 
 import android.Manifest
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.NewReleases
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
+import com.memshot.app.update.Updater
+import com.memshot.app.ui.theme.BrandGradient
+import com.memshot.app.ui.theme.Violet
 import android.widget.Toast
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.CloudUpload
@@ -219,6 +237,8 @@ fun SettingsSheet(
         ) {
             Text("Impostazioni", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(16.dp))
+            UpdateCard(vm)
+            Spacer(Modifier.height(12.dp))
 
             if (!hasMedia) {
                 SettingRow(
@@ -318,6 +338,133 @@ fun SettingsSheet(
                 )
             }
         }
+    }
+}
+
+/** Aggiornamenti: si controlla da solo appena apri le impostazioni. */
+@Composable
+private fun UpdateCard(vm: MainViewModel) {
+    val status by vm.updateStatus.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) { vm.checkForUpdate() }
+    val highlight = status is Updater.Status.Available || status is Updater.Status.Downloading || status is Updater.Status.Ready
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                if (highlight) BrandGradient
+                else Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.surfaceContainerHigh))
+            )
+            .animateContentSize(spring(stiffness = 400f))
+            .padding(16.dp)
+    ) {
+        AnimatedContent(
+            targetState = status,
+            contentKey = { it::class },
+            transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(150)) },
+            label = "update",
+        ) { s ->
+            val onCard = if (highlight) Color.White else MaterialTheme.colorScheme.onSurface
+            val subtle = if (highlight) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant
+            when (s) {
+                is Updater.Status.Idle, is Updater.Status.Checking -> UpdateRow(
+                    leading = { CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.5.dp) },
+                    title = "Controllo aggiornamenti…",
+                    subtitle = "Versione installata: ${vm.currentVersion}",
+                    color = onCard, subtle = subtle,
+                )
+                is Updater.Status.UpToDate -> UpdateRow(
+                    leading = { Icon(Icons.Rounded.CheckCircle, null, tint = Color(0xFF30A46C)) },
+                    title = "MemShot è aggiornata",
+                    subtitle = "Versione ${vm.currentVersion}",
+                    color = onCard, subtle = subtle,
+                    trailing = {
+                        IconButton(onClick = { vm.checkForUpdate() }) {
+                            Icon(Icons.Rounded.Refresh, "Controlla di nuovo", tint = subtle)
+                        }
+                    },
+                )
+                is Updater.Status.Available -> Column {
+                    UpdateRow(
+                        leading = { Icon(Icons.Rounded.NewReleases, null, tint = Color.White) },
+                        title = "Nuova versione ${s.version}",
+                        subtitle = "Hai la ${vm.currentVersion}" + if (s.sizeBytes > 0) " · %.1f MB".format(s.sizeBytes / 1_048_576f) else "",
+                        color = onCard, subtle = subtle,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Button(
+                        onClick = { vm.downloadUpdate(s) },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Violet),
+                    ) {
+                        Icon(Icons.Rounded.Download, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Scarica e installa")
+                    }
+                }
+                is Updater.Status.Downloading -> Column {
+                    UpdateRow(
+                        leading = { Icon(Icons.Rounded.Download, null, tint = Color.White) },
+                        title = "Scarico la versione ${s.version}…",
+                        subtitle = "${(s.progress * 100).toInt()}%",
+                        color = onCard, subtle = subtle,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    val progress by androidx.compose.animation.core.animateFloatAsState(s.progress, label = "dl")
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                        color = Color.White,
+                        trackColor = Color.White.copy(alpha = 0.3f),
+                        drawStopIndicator = {},
+                        gapSize = 0.dp,
+                    )
+                }
+                is Updater.Status.Ready -> Column {
+                    UpdateRow(
+                        leading = { Icon(Icons.Rounded.CheckCircle, null, tint = Color.White) },
+                        title = "Versione ${s.version} pronta",
+                        subtitle = "Conferma l'installazione quando Android te lo chiede",
+                        color = onCard, subtle = subtle,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Button(
+                        onClick = { vm.installUpdate(s) },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Violet),
+                    ) { Text("Installa") }
+                }
+                is Updater.Status.Failed -> UpdateRow(
+                    leading = { Icon(Icons.Rounded.WarningAmber, null, tint = MaterialTheme.colorScheme.error) },
+                    title = s.message,
+                    subtitle = "Versione installata: ${vm.currentVersion}",
+                    color = onCard, subtle = subtle,
+                    trailing = { TextButton(onClick = { vm.checkForUpdate() }) { Text("Riprova") } },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UpdateRow(
+    leading: @Composable () -> Unit,
+    title: String,
+    subtitle: String,
+    color: Color,
+    subtle: Color,
+    trailing: (@Composable () -> Unit)? = null,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) { leading() }
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleSmall, color = color)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = subtle)
+        }
+        trailing?.invoke()
     }
 }
 

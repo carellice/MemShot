@@ -13,6 +13,7 @@ class MemShotApp : Application() {
     val db by lazy { AppDatabase.get(this) }
     val prefs by lazy { Prefs(this) }
     val backup by lazy { com.memshot.app.data.Backup(this, db.shots(), prefs) }
+    val updater by lazy { com.memshot.app.update.Updater(this) }
     val cleaner by lazy { PhoneCleaner(this, prefs) }
     val importer by lazy { ScreenshotImporter(this, db.shots(), cleaner) }
     val analyzer by lazy { Analyzer(this) }
