@@ -173,6 +173,7 @@ fun DetailScreen(
                 TikTokPage(
                     vm = vm,
                     id = id,
+                    current = page == pager.currentPage,
                     initial = initial(id),
                     onAddTag = { addTag = true },
                     onInfo = { infoSheet = true },
@@ -191,6 +192,7 @@ fun DetailScreen(
                 GalleryPage(
                     vm = vm,
                     id = id,
+                    current = page == pager.currentPage,
                     initial = initial(id),
                     query = query,
                     onAddTag = { addTag = true },
@@ -292,6 +294,7 @@ private fun ShotInfo(s: Shot, query: String, onRemoveTag: (String) -> Unit, onAd
 private fun GalleryPage(
     vm: MainViewModel,
     id: Long,
+    current: Boolean,
     initial: Shot?,
     query: String,
     onAddTag: () -> Unit,
@@ -320,7 +323,7 @@ private fun GalleryPage(
                 modifier = Modifier
                     .heightIn(max = 520.dp)
                     .aspectRatio(s.aspectRatio, matchHeightConstraintsFirst = true)
-                    .sharedShot(s.id, RoundedCornerShape(24.dp))
+                    .sharedShot(s.id, RoundedCornerShape(24.dp), enabled = current)
                     .clip(RoundedCornerShape(24.dp))
                     .clickable(onClick = onOpenViewer),
             )
@@ -342,6 +345,7 @@ private fun GalleryPage(
 private fun TikTokPage(
     vm: MainViewModel,
     id: Long,
+    current: Boolean,
     initial: Shot?,
     onAddTag: () -> Unit,
     onInfo: () -> Unit,
@@ -367,7 +371,7 @@ private fun TikTokPage(
                 .statusBarsPadding()
                 .padding(top = 56.dp, bottom = 150.dp)
                 .padding(horizontal = 12.dp)
-                .sharedShot(s.id, RoundedCornerShape(16.dp))
+                .sharedShot(s.id, RoundedCornerShape(16.dp), enabled = current)
                 .clip(RoundedCornerShape(16.dp))
                 .pointerInput(s.id) {
                     detectTapGestures(

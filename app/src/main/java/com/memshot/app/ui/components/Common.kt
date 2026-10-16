@@ -44,7 +44,12 @@ val LocalNavScope = compositionLocalOf<AnimatedVisibilityScope?> { null }
 
 /** Collega lo stesso screenshot tra griglia e dettaglio: l'immagine "vola" da una schermata all'altra. */
 @Composable
-fun Modifier.sharedShot(id: Long, shape: androidx.compose.ui.graphics.Shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)): Modifier {
+fun Modifier.sharedShot(
+    id: Long,
+    shape: androidx.compose.ui.graphics.Shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+    enabled: Boolean = true,
+): Modifier {
+    if (!enabled) return this
     val shared = LocalSharedScope.current ?: return this
     val nav = LocalNavScope.current ?: return this
     return with(shared) {
@@ -56,6 +61,10 @@ fun Modifier.sharedShot(id: Long, shape: androidx.compose.ui.graphics.Shape = an
         )
     }
 }
+
+/** Vero mentre l'immagine sta "volando" tra griglia e dettaglio. */
+@Composable
+fun isSharedTransitionRunning(): Boolean = LocalSharedScope.current?.isTransitionActive == true
 
 /** Effetto "pressione" morbido su qualsiasi elemento cliccabile. */
 fun Modifier.bouncyClick(

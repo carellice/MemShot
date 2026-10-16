@@ -96,6 +96,7 @@ import com.memshot.app.ui.components.TAG_FAVORITES
 import androidx.compose.material.icons.rounded.Checklist
 import androidx.compose.material.icons.rounded.SearchOff
 import com.memshot.app.ui.components.bouncyClick
+import com.memshot.app.ui.components.isSharedTransitionRunning
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import com.memshot.app.ui.components.shareFiles
@@ -565,6 +566,9 @@ internal fun ShotGrid(
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(150.dp),
         state = gridState,
+        // Se si scorre mentre l'immagine torna nella sua card, la card può uscire dallo schermo
+        // a metà animazione e Compose va in crash: lo scorrimento riparte appena l'animazione finisce
+        userScrollEnabled = !isSharedTransitionRunning(),
         contentPadding = gridBottomPadding(),
         verticalItemSpacing = 12.dp,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
